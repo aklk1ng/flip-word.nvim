@@ -33,6 +33,32 @@ M.opts = {
   key = 'ta',
 }
 
+-- just stolen from the `vim` module
+local function tbl_keys(t)
+  local keys = {}
+  for k in pairs(t) do
+    if type(k) == 'string' then
+      table.insert(keys, k)
+    end
+  end
+  return keys
+end
+
+local function reverse(t)
+  local keys = tbl_keys(t)
+  if not keys then
+    return nil
+  end
+  for _, k in ipairs(keys) do
+    local v = t[k]
+    if t[v] then
+      vim.notify('The table found an existing value')
+    end
+    t[v] = k
+  end
+  return t
+end
+
 function M.toggle()
   local cur = api.nvim_win_get_cursor(0)
   vim.cmd('normal! viw')
@@ -53,7 +79,10 @@ end
 
 function M.setup(opt)
   M.opts = vim.tbl_extend('force', M.opts, opt or {})
-  vim.tbl_add_reverse_lookup(M.opts.table)
+  M.opts.table = reverse(M.opts.table)
+  if not M.opts.table then
+    return
+  end
   vim.keymap.set('n', M.opts.key, function()
     M.toggle()
   end)
